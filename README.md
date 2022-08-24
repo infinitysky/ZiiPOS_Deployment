@@ -1,2 +1,3 @@
 # ZiiPOSRetailDeployment
 ZiiPOSRetailDeployment
+pyinstaller --onefile ZiiPOSRetailDeployment.py

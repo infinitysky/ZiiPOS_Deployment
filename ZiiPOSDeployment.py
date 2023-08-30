@@ -264,6 +264,7 @@ def createSystemConfigurationBatchFile(directory):
 cd c:\ziitech
 netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes
 netsh advfirewall set currentprofile state on
+
 powercfg /S 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 powercfg /change standby-timeout-ac 0
 powercfg /change standby-timeout-dc 0
@@ -272,7 +273,6 @@ powercfg /change monitor-timeout-dc 0
 powercfg /change hibernate-timeout-ac 0
 powercfg /change hibernate-timeout-dc 0
 powercfg -setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
-powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
 
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
 
@@ -283,14 +283,12 @@ reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\TabletTip\1.7" /v TipbandDesiredVi
 
 netsh advfirewall firewall add rule name = ZiiPOS_DB_Port dir = in protocol = tcp action = allow localport = 9899 profile = DOMAIN,PRIVATE,PUBLIC
 netsh advfirewall firewall add rule name = ZiiPOS_DB_Port dir = out protocol = tcp action = allow localport = 9899 profile = DOMAIN,PRIVATE,PUBLIC
-
 netsh advfirewall firewall add rule name = ZiiPOS_Port dir = in protocol = tcp action = allow localport = 8082 profile = DOMAIN,PRIVATE,PUBLIC
 netsh advfirewall firewall add rule name = ZiiPOS_Port dir = out protocol = tcp action = allow localport = 8082  profile = DOMAIN,PRIVATE,PUBLIC
 
 
 reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d "00000000" /f
 reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d "00000000"/f
-:: Show Control Panel
 reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d "00000000"/f
 reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d "00000000"/f
 
@@ -298,12 +296,18 @@ reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Hi
 net stop wuauserv
 sc config wuauserv start= disabled
 reg add "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoUpdate /t REG_DWORD /d "1" /f
-reg add "HKLHKEY_LOCAL_MACHINEM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v AllowMUUpdateService /t REG_DWORD /d "1" /f
+reg add "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v AllowMUUpdateService /t REG_DWORD /d "1" /f
 reg add "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v AUOptions /t REG_DWORD /d "1" /f
-
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\WindowsStore" /v AutoDownload /t REG_DWORD /d "2" /f
 schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\Scheduled Start" /Disable
 schtasks /Change /TN "\Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan" /Disable
+
+
+echo shutdown /r /f /t 10 > C:\Ziitech\Restart.bat
+SCHTASKS /CREATE /SC DAILY /TN "ScheduledReboot" /TR "'C:\Ziitech\Restart.bat'" /ST 04:00 /RL HIGHEST
+SCHTASKS /CREATE /SC DAILY /TN "TimeResync" /TR "w32tm /resync" /ST 23:00 /RL HIGHEST
+
+
 
 exit''')
     systemConfigFile.close()
@@ -353,7 +357,7 @@ def createProfilSettingFile():
     "MerchantId": "Fill-YOUR-MERCHANT-NAME",
     "BranchId": "FILL-YOUR-BRANCH-NAME",
     "DBType": "0",
-    "DataSource": "localhost\\sqlexpress208r2",
+    "DataSource": "localhost\\sqlexpress2008r2",
     "InitialCatalog": "ZiiPOS_DB",
     "AuthEntication": "1",
     "UserName": "sa",
@@ -366,9 +370,9 @@ def createProfilSettingFile():
     profilesFileSet.close()
     file_exists = os.path.exists(profilesFile)
     if (file_exists==True):
-         print("SQLServer Account SQL File ready")
+         print("SQLServer Profile File ready")
     else:
-        print("SQLServer Account SQL File Create Error")
+        print("SQLServer Profile File Create Error")
 
 
 

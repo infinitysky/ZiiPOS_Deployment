@@ -1,5 +1,6 @@
 import os
 import os.path
+import sys
 import struct 
 import wget
 import subprocess
@@ -9,13 +10,21 @@ import tkinter as tk
 from tkinter import messagebox
 import tkinter.font as tkFont
 
-
-
-
 ssl._create_default_https_context = ssl._create_unverified_context
+
+config_name = 'myapp.cfg'
+
+# determine if application is a script file or frozen exe
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+
+config_path = os.path.join(application_path, config_name)
+
+
 #-------glob var -------------
 directory ="C:\Ziitech"
-
 ZiiPOSdownloadUrl = "https://download.ziicloud.com/programs/ziipos/ZiiLocalServerSetup_2.5.2.1.exe"
 syncToolDownloadURL='https://download.ziicloud.com/programs/ziisync/ZiiSyncSetup-x86(v2.1.1).exe'
 _7Zipx64DownloadURL='https://www.7-zip.org/a/7z2201-x64.exe'
@@ -651,15 +660,51 @@ def installZiiPOS(directory):
         downloadZiiPOS(downloadUrl,filePath)
         runCMD1='cmd /c '+filePath+' /S'
         os.system(runCMD1)
+        
+        
+        
+        
+        
+        
+#-------------------------USB INSTALLATION--------------------------------------
+
+def checkUSBFiles():
+    returnFileValue=0
+    dir_path= os.path.dirname(os.path.realpath(__file__))
+    filename1=dir_path+"\\03_Softwares\\AutoInstall\\00_InstallApps.bat"
+    filename2=dir_path+"\\01_Softwares\\AutoInstall\\00_InstallApps.bat"
+    #cwd = os.getcwd()
+    print(dir_path)
+    file_exists1 = os.path.exists(filename1)
+    file_exists2 = os.path.exists(filename2)
+    if (file_exists1==True):
+        print(file_exists1)
+        returnFileValue=filename1
+        
+    elif(file_exists2==True):
+        print(file_exists2)
+        returnFileValue=filename2
+    else:
+        returnFileValue=0
+        
+    return returnFileValue
+    
+
+    
+    
+
+
  
+#======================================= MAIN UI ===================================================================
+
 
 class App:
     def __init__(self, root):
         #setting title
         root.title("ZiiPOS Retail Upgrade")
         #setting window size
-        width=229
-        height=146
+        width=320
+        height=250
         screenwidth = root.winfo_screenwidth()
         screenheight = root.winfo_screenheight()
         alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
@@ -673,23 +718,34 @@ class App:
         GButton_ZiiPOSDeployment["font"] = ft
         GButton_ZiiPOSDeployment["fg"] = "#000000"
         GButton_ZiiPOSDeployment["justify"] = "center"
-        GButton_ZiiPOSDeployment["text"] = "Deploy ZiiPOS FB Server FULL Set"
-        GButton_ZiiPOSDeployment.place(x=40,y=80,width=153,height=52)
+        GButton_ZiiPOSDeployment["text"] = "Deploy ZiiPOS FB Server with remote Set"
+        GButton_ZiiPOSDeployment.place(x=40,y=90,width=250,height=52)
         GButton_ZiiPOSDeployment["command"] = self.GButton_ZiiPOSDeployment_command
         
 
-        GButton_ZiiPOSUpgrade=tk.Button(root)
-        GButton_ZiiPOSUpgrade["bg"] = "#f0f0f0"
+        GButton_ZiiPOSRemoteFULL=tk.Button(root)
+        GButton_ZiiPOSRemoteFULL["bg"] = "#f0f0f0"
         ft = tkFont.Font(family='Times',size=10)
-        GButton_ZiiPOSUpgrade["font"] = ft
-        GButton_ZiiPOSUpgrade["fg"] = "#000000"
-        GButton_ZiiPOSUpgrade["justify"] = "center"
-        GButton_ZiiPOSUpgrade["text"] = "Install Local Server ONLY"
-        GButton_ZiiPOSUpgrade.place(x=40,y=20,width=153,height=52)
-        GButton_ZiiPOSUpgrade["command"] = self.GButton_ZiiPOSUpgrade_command
+        GButton_ZiiPOSRemoteFULL["font"] = ft
+        GButton_ZiiPOSRemoteFULL["fg"] = "#000000"
+        GButton_ZiiPOSRemoteFULL["justify"] = "center"
+        GButton_ZiiPOSRemoteFULL["text"] = "Install Local Server ONLY"
+        GButton_ZiiPOSRemoteFULL.place(x=40,y=20,width=250,height=52)
+        GButton_ZiiPOSRemoteFULL["command"] = self.GButton_ZiiPOSRemoteFULL_command
+        
+        
+        GButton_ZiiPOSUSB=tk.Button(root)
+        GButton_ZiiPOSUSB["bg"] = "#f0f0f0"
+        ft = tkFont.Font(family='Times',size=10)
+        GButton_ZiiPOSUSB["font"] = ft
+        GButton_ZiiPOSUSB["fg"] = "#000000"
+        GButton_ZiiPOSUSB["justify"] = "center"
+        GButton_ZiiPOSUSB["text"] = "Install With USB Drive"
+        GButton_ZiiPOSUSB.place(x=40,y=160,width=250,height=52)
+        GButton_ZiiPOSUSB["command"] = self.GButton_ZiiPOSInstallWithUSB
         
 
-    def GButton_ZiiPOSUpgrade_command(self):
+    def GButton_ZiiPOSRemoteFULL_command(self):
         directory ="C:\Ziitech"
         syncDateAndTime()
         createTempFolder(directory)
@@ -717,6 +773,39 @@ class App:
             print("windows system: " + SystemVersion)
             messagebox.showinfo(title="Windows System not compatible", message="Windows system not compatible! Win X64 ONLY") 
 
+    
+    def GButton_ZiiPOSInstallWithUSB(self):
+       
+        getRestartStatus=restart_statues()
+        SystemVersion=checkSystem()
+        usbInstallFilePath=checkUSBFiles()
+
+        if SystemVersion==64:    
+            if getRestartStatus==0:
+                usbInstallFilePath=checkUSBFiles()
+                if usbInstallFilePath ==0:
+                    messagebox.showinfo(title="File not exist", message="ZiiPOS Files are not exist")
+                else:
+                    runCMD1='cmd /c '+usbInstallFilePath+' /S'
+                    os.system(runCMD1)
+                
+                    messagebox.showinfo(title="Installation Complete", message="ZiiPOS FB with USB Installation Complete")
+                
+                
+                
+            else:
+                print("windows system need REBOOT" )
+                messagebox.showinfo(title="PLease REBOOT", message="Windows has a pending restart process, you must REBOOT WINDOES before we start") 
+        else:
+            print("windows system: " + SystemVersion)
+            messagebox.showinfo(title="Windows System not compatible", message="Windows system not compatible! Win X64 ONLY") 
+
+        
+        
+        
+        
+        
+        
 if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)

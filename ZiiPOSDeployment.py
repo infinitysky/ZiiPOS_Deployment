@@ -28,12 +28,13 @@ config_path = os.path.join(application_path, config_name)
 
 #-------glob var -------------
 GlobalDirectory ="C:\\Ziitech\\download"
-ZiiPOSdownloadUrl = "https://download.ziicloud.com/programs/ziipos/ZiiLocalServerSetup(v2.6.1.2).exe"
+ZiiPOSdownloadUrl = "https://download.ziicloud.com/programs/ziipos/ZiiLocalServerSetup(v2.6.7.3).exe"
 syncToolDownloadURL='https://download.ziicloud.com/programs/ziisync/ZiiSyncSetup-x86(v2.1.1).exe'
 _7Zipx64DownloadURL='https://www.7-zip.org/a/7z2201-x64.exe'
 DBx64downloadURL='https://download.ziicloud.com/databases/SQLEXPRWT_x64_ENU.exe'
 DBScript='https://download.ziicloud.com/other/ziipos_init_script_v2.4.2.sql'
-anydeskDownloadURL="https://download.anydesk.com/AnyDesk.msi"
+#anydeskDownloadURL="https://download.anydesk.com/AnyDesk.msi"
+anydeskDownloadURL="https://download.anydesk.com/AnyDesk.exe"
 dotnetCore301x64DownloadURL="https://download.visualstudio.microsoft.com/download/pr/e0f36c72-8edf-4c6b-a835-e74cfcc6fc23/b5e69be920e77652ce6f31a0f48ab71d/dotnet-sdk-3.1.426-win-x86.exe"
 dotnetCore301x86DownloadURL="https://download.visualstudio.microsoft.com/download/pr/b70ad520-0e60-43f5-aee2-d3965094a40d/667c122b3736dcbfa1beff08092dbfc3/dotnet-sdk-3.1.426-win-x64.exe"
 
@@ -170,7 +171,10 @@ def createDisablewin(directory):
     
                      
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
-    DisableW.write(r'''net stop wuauserv
+    DisableW.write(r'''
+cd /d c:\ziitech\download
+cd c:\ziitech\download                   
+net stop wuauserv
 sc config wuauserv start= disabled
 reg add "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoUpdate /t REG_DWORD /d "1" /f
 reg add "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v AllowMUUpdateService /t REG_DWORD /d "1" /f
@@ -251,6 +255,7 @@ def createSQLServerInstallationBatchFile(directory):
     
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     SQLInstallationBatchFile.write(r'''
+cd /d c:\ziitech\download
 cd c:\ziitech\download
 SQLEXPRWT_2008R2_x64_ENU.exe /QS /ACTION=Install /FEATURES=SQLENGINE,REPLICATION,SSMS,SNAC_SDK /IACCEPTSQLSERVERLICENSETERMS /SECURITYMODE=SQL /SAPWD="0000" /INSTANCENAME="SQLEXPRESS2008R2" /SQLSVCACCOUNT="NT AUTHORITY\NETWORK SERVICE" /RSSVCACCOUNT="NT AUTHORITY\NETWORK SERVICE" /AGTSVCACCOUNT="NT AUTHORITY\NETWORK SERVICE" /ADDCURRENTUSERASSQLADMIN="True" /BROWSERSVCSTARTUPTYPE="Automatic" /TCPENABLED="1" /NPENABLED="1"
 exit''')
@@ -272,6 +277,7 @@ def createSQLServerConfigurationBatchFile(directory):
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     DBConfigurationFileBatch.write(r'''
 
+cd /d c:\ziitech\download
 cd c:\ziitech\download
 
 net stop MSSQL$SQLEXPRESS2008R2 
@@ -308,6 +314,7 @@ def createDBBuildFile(directory):
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     DBConfigurationFileBatch.write(r'''
 
+cd /d c:\ziitech\download
 cd c:\ziitech\download
 
 "C:\Program Files\Microsoft SQL Server\100\Tools\Binn\sqlcmd.exe" -S localhost\SQLEXPRESS2008R2 -i createDB.sql
@@ -329,6 +336,7 @@ def createChocoInstallBatch(directory):
     
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     chocoFileBatch.write(r'''
+cd /d c:\ziitech\download
 cd c:\ziitech\download
 
 @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
@@ -358,6 +366,7 @@ def createSystemConfigurationBatchFile(directory):
     
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     systemConfigFile.write(r'''
+cd /d c:\ziitech\download
 cd c:\ziitech\download
 netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes
 netsh advfirewall set currentprofile state on
@@ -371,11 +380,10 @@ powercfg /change hibernate-timeout-ac 0
 powercfg /change hibernate-timeout-dc 0
 powercfg -setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
 
-reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
 
-netsh advfirewall firewall set rule group="remote desktop" new enable=Yes
+netsh advfirewall firewall add rule name="Zii.LocalServer" dir=in protocol=tcp program="C:\program files (x86)\ziiforce\zii.localserver\zii.localserver.exe" action=allow
 
-reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\TabletTip\1.7" /v TipbandDesiredVisibility /t REG_DWORD /d 1 /f
+netsh advfirewall firewall add rule name="Zii.LocalServer" dir=in protocol=udp program="C:\program files (x86)\ziiforce\zii.localserver\zii.localserver.exe" action=allow
 
 
 netsh advfirewall firewall add rule name = ZiiPOS_DB_Port dir = in protocol = tcp action = allow localport = 9899 profile = DOMAIN,PRIVATE,PUBLIC
@@ -383,11 +391,16 @@ netsh advfirewall firewall add rule name = ZiiPOS_DB_Port dir = out protocol = t
 netsh advfirewall firewall add rule name = ZiiPOS_Port dir = in protocol = tcp action = allow localport = 8082 profile = DOMAIN,PRIVATE,PUBLIC
 netsh advfirewall firewall add rule name = ZiiPOS_Port dir = out protocol = tcp action = allow localport = 8082  profile = DOMAIN,PRIVATE,PUBLIC
 
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
 
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d "00000000" /f
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d "00000000"/f
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d "00000000"/f
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d "00000000"/f
+netsh advfirewall firewall set rule group="remote desktop" new enable=Yes                   
+
+reg add "HKCU\SOFTWARE\Microsoft\TabletTip\1.7" /V "TipbandDesiredVisibility" /T REG_DWORD /D 1 /F
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /V "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /T REG_DWORD /D 00000000 /F
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /V "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /T REG_DWORD /D 00000000 /F
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /V "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /T REG_DWORD /D 00000000 /F
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /V "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /T REG_DWORD /D 00000000 /F
+
 
 
 net stop wuauserv
@@ -551,9 +564,11 @@ def download7Zip(directory):
         wget.download(downloadURL, filePath)
         
 def downloadAnydesk(directory):
+
     #filePath = path+"\ZiiPOSRetail"+version+".exe"
     downloadURL=anydeskDownloadURL
-    filePath=directory+'\\anydesk.msi'
+    #filePath=directory+'\\anydesk.msi'
+    filePath=directory+'\\anydesk.exe'
     file_exists = os.path.exists(filePath)
     if (file_exists==True):
        print("\ndownload anydesk file Ready")
@@ -571,7 +586,8 @@ def AnydeskInstallationProcess(directory):
     file_exists = os.path.exists(filePath)
     if (file_exists==True):
         print("anydesk Ready")
-        runCMD1='cmd /c msiexec /i '+filePath+' /QN'
+        #runCMD1='cmd /c msiexec /i '+filePath+' /QN'
+        runCMD1='cmd /c '+filePath+' --install  "C:\Program Files (x86)\AnyDesk" --start-with-win --create-desktop-icon'
         os.system(runCMD1)
         runCMD2='cmd /c echo Ziitech123! | "C:\Program Files (x86)\AnyDeskMSI\AnyDeskMSI.exe" --set-password'
         os.system(runCMD2)
@@ -757,13 +773,14 @@ def startZiiPOSFullDeployment():
 
         
     # -----------Start Installation-------------------------
+    windowsSystemConfiguration(directory)
     AnydeskInstallationProcess(directory)
     InstallDotNet35(directory)    
     SQLServerInstallationProcess(directory)
-    windowsSystemConfiguration(directory)
+    runSQLDBBuild(directory)
     installZiiPOS(directory)
     SyncToolsInstallationProcess(directory)
-    runSQLDBBuild(directory)
+   
     createProfilSettingFile()
     runChocoinstall(directory)
 
@@ -790,10 +807,9 @@ def ZiiPOSDeployment():
 
         
     # -----------Start Installation-------------------------
-    
+    runSQLDBBuild(directory)
     installZiiPOS(directory)
     SyncToolsInstallationProcess(directory)
-    runSQLDBBuild(directory)
     createProfilSettingFile()   
         
         
@@ -837,7 +853,7 @@ class App:
     def __init__(self, root):
         
         #setting title
-        root.title("ZiiPOS FB Deployment Tool V1.5")
+        root.title("ZiiPOS FB Deployment Tool V1.7")
         #setting window size
         width=350
         height=300

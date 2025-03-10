@@ -1,3 +1,7 @@
+#MYPOS deployment tool
+#Build 20240927
+#Version V1.6-m
+
 from ast import Global
 import os
 import os.path
@@ -12,8 +16,6 @@ from tkinter import messagebox
 import tkinter.font as tkFont
 import shutil
 import ctypes, os
-import json
-
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -29,21 +31,17 @@ config_path = os.path.join(application_path, config_name)
 
 
 #-------glob var -------------
-GlobalDirectory ="C:\\Ziitech\\download"
-ZiiPOSRetailClassicSourceURL="https://wombat-api.ziicloud.com/api/vs/client-version/version?clientName=Zii.Retail_Classic&version=1"
-#ZiiPOSdownloadUrl = "https://download.ziicloud.com/programs/ziipos/ZiiLocalServerSetup(v2.6.1.2).exe"
-syncToolDownloadURL='https://download.ziicloud.com/programs/ziisync/ZiiSyncSetup-x86(v2.1.1).exe'
-_7Zipx64DownloadURL='https://www.7-zip.org/a/7z2407-x64.exe'
+GlobalDirectory ="C:\\MyPOSZero\\download"
+ZiiPOSdownloadUrl = "https://download-myposzero.ziicloud.com/programs/mypos/MyPosZeroLocalServerSetup(v2.6.7.3).exe"
+_7Zipx64DownloadURL='https://www.7-zip.org/a/7z2201-x64.exe'
 DBx64downloadURL='https://download.ziicloud.com/databases/SQLEXPRWT_x64_ENU.exe'
 DBScript='https://download.ziicloud.com/other/ziipos_init_script_v2.4.2.sql'
-anydeskDownloadURL="https://download.anydesk.com/AnyDesk.msi"
-AccessDatabaseEngineDownloadURL="https://download.ziicloud.com/other/AccessDatabaseEngine.rar"
-
+anydeskDownloadURL="https://download.anydesk.com/AnyDesk.exe"
+#anydeskDownloadURL="https://download.anydesk.com/AnyDesk.msi"
 dotnetCore301x64DownloadURL="https://download.visualstudio.microsoft.com/download/pr/e0f36c72-8edf-4c6b-a835-e74cfcc6fc23/b5e69be920e77652ce6f31a0f48ab71d/dotnet-sdk-3.1.426-win-x86.exe"
 dotnetCore301x86DownloadURL="https://download.visualstudio.microsoft.com/download/pr/b70ad520-0e60-43f5-aee2-d3965094a40d/667c122b3736dcbfa1beff08092dbfc3/dotnet-sdk-3.1.426-win-x64.exe"
 
-LocalFileDirectory="C:\\Ziitech_D"
-LocalFileSqlFile=LocalFileDirectory+"\\01_Softwares\\AutoInstall\\SQLServer2008R2\\SQLEXPRWT_2008R2_x64_ENU.exe"
+LocalFileSqlFile="C:\\MyPOSZero\\download\\SQLEXPRWT_2008R2_x64_ENU.exe"
 
 
 #---- check is admin
@@ -104,64 +102,80 @@ def createDBSQLFile(directory):
     createDBSQLQueryFile=directory+"\\createDB.sql"
     dbsqlquery=open(createDBSQLQueryFile,'w')
     dbsqlquery.write(r'''
-CREATE DATABASE [ZiiPOS_DB] ON  PRIMARY 
-( NAME = N'ZiiPOS_DB', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL10_50.SQLEXPRESS2008R2\MSSQL\DATA\ZiiPOS_DB.mdf' , SIZE = 3072KB , FILEGROWTH = 1024KB )
+USE tempdb;
+
+DECLARE @SQL nvarchar(max);
+
+IF EXISTS (SELECT 1 FROM sys.databases WHERE [name] = 'MYPOSZero_DB')
+BEGIN
+SET @SQL =
+N'USE MYPOSZero_DB;
+ALTER DATABASE MYPOSZero_DB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+USE master;
+DROP DATABASE MYPOSZero_DB;';
+EXEC (@SQL);
+USE tempdb;
+END;
+
+
+CREATE DATABASE [MYPOSZero_DB] ON  PRIMARY 
+( NAME = N'MYPOSZero_DB', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL10_50.SQLEXPRESS2008R2\MSSQL\DATA\MYPOSZero_DB.mdf' , SIZE = 3072KB , FILEGROWTH = 1024KB )
  LOG ON 
-( NAME = N'ZiiPOS_DB_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL10_50.SQLEXPRESS2008R2\MSSQL\DATA\ZiiPOS_DB_log.ldf' , SIZE = 1024KB , FILEGROWTH = 10%)
+( NAME = N'MYPOSZero_DB_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL10_50.SQLEXPRESS2008R2\MSSQL\DATA\MYPOSZero_DB.ldf' , SIZE = 1024KB , FILEGROWTH = 10%)
 GO
-ALTER DATABASE [ZiiPOS_DB] SET COMPATIBILITY_LEVEL = 100
+ALTER DATABASE [MYPOSZero_DB] SET COMPATIBILITY_LEVEL = 100
 GO
-ALTER DATABASE [ZiiPOS_DB] SET ANSI_NULL_DEFAULT OFF 
+ALTER DATABASE [MYPOSZero_DB] SET ANSI_NULL_DEFAULT OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET ANSI_NULLS OFF 
+ALTER DATABASE [MYPOSZero_DB] SET ANSI_NULLS OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET ANSI_PADDING OFF 
+ALTER DATABASE [MYPOSZero_DB] SET ANSI_PADDING OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET ANSI_WARNINGS OFF 
+ALTER DATABASE [MYPOSZero_DB] SET ANSI_WARNINGS OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET ARITHABORT OFF 
+ALTER DATABASE [MYPOSZero_DB] SET ARITHABORT OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET AUTO_CLOSE OFF 
+ALTER DATABASE [MYPOSZero_DB] SET AUTO_CLOSE OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET AUTO_SHRINK OFF 
+ALTER DATABASE [MYPOSZero_DB] SET AUTO_SHRINK OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET AUTO_CREATE_STATISTICS ON
+ALTER DATABASE [MYPOSZero_DB] SET AUTO_CREATE_STATISTICS ON
 GO
-ALTER DATABASE [ZiiPOS_DB] SET AUTO_UPDATE_STATISTICS ON 
+ALTER DATABASE [MYPOSZero_DB] SET AUTO_UPDATE_STATISTICS ON 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET CURSOR_CLOSE_ON_COMMIT OFF 
+ALTER DATABASE [MYPOSZero_DB] SET CURSOR_CLOSE_ON_COMMIT OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET CURSOR_DEFAULT  GLOBAL 
+ALTER DATABASE [MYPOSZero_DB] SET CURSOR_DEFAULT  GLOBAL 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET CONCAT_NULL_YIELDS_NULL OFF 
+ALTER DATABASE [MYPOSZero_DB] SET CONCAT_NULL_YIELDS_NULL OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET NUMERIC_ROUNDABORT OFF 
+ALTER DATABASE [MYPOSZero_DB] SET NUMERIC_ROUNDABORT OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET QUOTED_IDENTIFIER OFF 
+ALTER DATABASE [MYPOSZero_DB] SET QUOTED_IDENTIFIER OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET RECURSIVE_TRIGGERS OFF 
+ALTER DATABASE [MYPOSZero_DB] SET RECURSIVE_TRIGGERS OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET  DISABLE_BROKER 
+ALTER DATABASE [MYPOSZero_DB] SET  DISABLE_BROKER 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
+ALTER DATABASE [MYPOSZero_DB] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET DATE_CORRELATION_OPTIMIZATION OFF 
+ALTER DATABASE [MYPOSZero_DB] SET DATE_CORRELATION_OPTIMIZATION OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET PARAMETERIZATION SIMPLE 
+ALTER DATABASE [MYPOSZero_DB] SET PARAMETERIZATION SIMPLE 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET READ_COMMITTED_SNAPSHOT OFF 
+ALTER DATABASE [MYPOSZero_DB] SET READ_COMMITTED_SNAPSHOT OFF 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET  READ_WRITE 
+ALTER DATABASE [MYPOSZero_DB] SET  READ_WRITE 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET RECOVERY SIMPLE 
+ALTER DATABASE [MYPOSZero_DB] SET RECOVERY SIMPLE 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET  MULTI_USER 
+ALTER DATABASE [MYPOSZero_DB] SET  MULTI_USER 
 GO
-ALTER DATABASE [ZiiPOS_DB] SET PAGE_VERIFY CHECKSUM  
+ALTER DATABASE [MYPOSZero_DB] SET PAGE_VERIFY CHECKSUM  
 GO
-USE [ZiiPOS_DB]
+USE [MYPOSZero_DB]
 GO
-IF NOT EXISTS (SELECT name FROM sys.filegroups WHERE is_default=1 AND name = N'PRIMARY') ALTER DATABASE [ZiiPOS_DB] MODIFY FILEGROUP [PRIMARY] DEFAULT
+IF NOT EXISTS (SELECT name FROM sys.filegroups WHERE is_default=1 AND name = N'PRIMARY') ALTER DATABASE [MYPOSZero_DB] MODIFY FILEGROUP [PRIMARY] DEFAULT
 GO
 
     ''')
@@ -169,15 +183,15 @@ GO
 
 
 def createDisablewin(directory):
-    DisableWFile=GlobalDirectory+"\\DisableWindows.bat"
+    DisableWFile=directory+"\\DisableWindows.bat"
    
     DisableW = open(DisableWFile,'w')
     
                      
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     DisableW.write(r'''
-cd /d c:\ziitech\download
-cd c:\ziitech\download                   
+cd /d %~dp0
+                                    
 net stop wuauserv
 sc config wuauserv start= disabled
 reg add "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoUpdate /t REG_DWORD /d "1" /f
@@ -239,13 +253,14 @@ def createDotNet31CoreInstallFile(directory):
     dotnet31core = open(DotNet31CoreInstallFile,'w')
     
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
-    dotnet31core.write(r'''cd /d %~dp0
-.\dotnet-sdk-3.1.426-win-x86.exe /install /S /norestart
-.\dotnet-sdk-3.1.426-win-x64.exe /install /S /norestart
+    dotnet31core.write(r''' 
+cd /d %~dp0
+dotnet-sdk-3.1.426-win-x86.exe /install /S /norestart
+dotnet-sdk-3.1.426-win-x64.exe /install /S /norestart
 exit''')
     dotnet31core.close()
     
-    file_exists = os.path.exists(dotnet31core)
+    file_exists = os.path.exists(DotNet31CoreInstallFile)
     if (file_exists==True):
          print(".Net 3.1 File ready")
     else:
@@ -259,8 +274,7 @@ def createSQLServerInstallationBatchFile(directory):
     
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     SQLInstallationBatchFile.write(r'''
-cd /d c:\ziitech\download
-cd c:\ziitech\download
+cd /d %~dp0
 SQLEXPRWT_2008R2_x64_ENU.exe /QS /ACTION=Install /FEATURES=SQLENGINE,REPLICATION,SSMS,SNAC_SDK /IACCEPTSQLSERVERLICENSETERMS /SECURITYMODE=SQL /SAPWD="0000" /INSTANCENAME="SQLEXPRESS2008R2" /SQLSVCACCOUNT="NT AUTHORITY\NETWORK SERVICE" /RSSVCACCOUNT="NT AUTHORITY\NETWORK SERVICE" /AGTSVCACCOUNT="NT AUTHORITY\NETWORK SERVICE" /ADDCURRENTUSERASSQLADMIN="True" /BROWSERSVCSTARTUPTYPE="Automatic" /TCPENABLED="1" /NPENABLED="1"
 exit''')
     SQLInstallationBatchFile.close()
@@ -281,8 +295,7 @@ def createSQLServerConfigurationBatchFile(directory):
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     DBConfigurationFileBatch.write(r'''
 
-cd /d c:\ziitech\download
-cd c:\ziitech\download
+cd /d %~dp0
 
 net stop MSSQL$SQLEXPRESS2008R2 
 
@@ -292,14 +305,10 @@ reg add "HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL10_50.SQLEXPRESS2008R
 
 net start MSSQL$SQLEXPRESS2008R2 
 
-"C:\Program Files\Microsoft SQL Server\100\Tools\Binn\sqlcmd.exe" -S localhost\SQLEXPRESS2008R2 -i ziiposAccount.sql
+netsh advfirewall firewall add rule name = SQLServer_Port dir = in protocol = tcp action = allow localport = 9899 profile = ALL 
+netsh advfirewall firewall add rule name = SQLServer_Port dir = out protocol = tcp action = allow localport = 9899 profile = ALL 
 
-netsh advfirewall firewall add rule name = SQLServer_Port dir = in protocol = tcp action = allow localport = 9899 profile = DOMAIN,PRIVATE,PUBLIC 
-netsh advfirewall firewall add rule name = SQLServer_Port dir = out protocol = tcp action = allow localport = 9899 profile = DOMAIN,PRIVATE,PUBLIC 
-netsh advfirewall firewall add rule name = DDA_iPad_Tools_Port dir = in protocol = tcp action = allow localport = 8787 profile = DOMAIN,PRIVATE,PUBLIC 
-netsh advfirewall firewall add rule name = DDA_iPad_Tools_Port dir = out protocol = tcp action = allow localport = 8787 profile = DOMAIN,PRIVATE,PUBLIC 
-netsh advfirewall firewall add rule name = PDA_Server_Port dir = in protocol = tcp action = allow localport = 8085 profile = DOMAIN,PRIVATE,PUBLIC 
-netsh advfirewall firewall add rule name = PDA_Server_Port dir = out protocol = tcp action = allow localport = 8085 profile = DOMAIN,PRIVATE,PUBLIC 
+                                
 exit''')
     DBConfigurationFileBatch.close()
     file_exists = os.path.exists(DBConfigurationFile)
@@ -318,11 +327,10 @@ def createDBBuildFile(directory):
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     DBConfigurationFileBatch.write(r'''
 
-cd /d c:\ziitech\download
-cd c:\ziitech\download
+cd /d %~dp0
 
 "C:\Program Files\Microsoft SQL Server\100\Tools\Binn\sqlcmd.exe" -S localhost\SQLEXPRESS2008R2 -i createDB.sql
-"C:\Program Files\Microsoft SQL Server\100\Tools\Binn\sqlcmd.exe" -S localhost\SQLEXPRESS2008R2 -d ZiiPOS_DB -i ziipos_init_script_v2.4.2.sql
+"C:\Program Files\Microsoft SQL Server\100\Tools\Binn\sqlcmd.exe" -S localhost\SQLEXPRESS2008R2 -d MYPOSZero_DB -i ziipos_init_script_v2.4.2.sql
 
 exit''')
     DBConfigurationFileBatch.close()
@@ -333,34 +341,6 @@ exit''')
         print("SQLServer DB Build File Create Error")
         
 
-def createChocoInstallBatch(directory):
-    softwareInstallFile=directory+"\\choco.bat"
-    #print(DBConfigurationFile)
-    chocoFileBatch = open(softwareInstallFile,'w')
-    
-    # Write BATCH fill by using Raw mode "r", Note: Do not change style
-    chocoFileBatch.write(r'''
-cd /d c:\ziitech\download
-cd c:\ziitech\download
-
-@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
-
-choco upgrade chocolatey
-choco install -y 7zip.install 
-choco install -y googlechrome 
-choco install -y firefox 
-chocho install -y vscode
-exit''')
-    chocoFileBatch.close()
-    file_exists = os.path.exists(softwareInstallFile)
-    if (file_exists==True):
-         print("choco install File ready")
-    else:
-        print("choco install File Create Error")
-
-
-
-
 
     
 def createSystemConfigurationBatchFile(directory):
@@ -370,8 +350,8 @@ def createSystemConfigurationBatchFile(directory):
     
     # Write BATCH fill by using Raw mode "r", Note: Do not change style
     systemConfigFile.write(r'''
-cd /d c:\ziitech\download
-cd c:\ziitech\download
+                           
+cd /d %~dp0
 netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes
 netsh advfirewall set currentprofile state on
 
@@ -384,23 +364,10 @@ powercfg /change hibernate-timeout-ac 0
 powercfg /change hibernate-timeout-dc 0
 powercfg -setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
 
-reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
 
-netsh advfirewall firewall set rule group="remote desktop" new enable=Yes
-
-reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\TabletTip\1.7" /v TipbandDesiredVisibility /t REG_DWORD /d 1 /f
-
-
-netsh advfirewall firewall add rule name = ZiiPOS_DB_Port dir = in protocol = tcp action = allow localport = 9899 profile = DOMAIN,PRIVATE,PUBLIC
-netsh advfirewall firewall add rule name = ZiiPOS_DB_Port dir = out protocol = tcp action = allow localport = 9899 profile = DOMAIN,PRIVATE,PUBLIC
-netsh advfirewall firewall add rule name = ZiiPOS_Port dir = in protocol = tcp action = allow localport = 8082 profile = DOMAIN,PRIVATE,PUBLIC
-netsh advfirewall firewall add rule name = ZiiPOS_Port dir = out protocol = tcp action = allow localport = 8082  profile = DOMAIN,PRIVATE,PUBLIC
-
-
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d "00000000" /f
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d "00000000"/f
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d "00000000"/f
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d "00000000"/f
+netsh advfirewall firewall add rule name="MyPosZero.LocalServer" dir=in protocol=tcp program="C:\program files (x86)\MyPosZero\MyPosZero.LocalServer\MyPosZero.LocalServer.exe" action=allow
+netsh advfirewall firewall add rule name="MyPosZero.LocalServer" dir=in protocol=udp program="C:\program files (x86)\MyPosZero\MyPosZero.LocalServer\MyPosZero.LocalServer.exe" action=allow
+   
 
 
 net stop wuauserv
@@ -414,52 +381,34 @@ schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\Scheduled Start" /Disable
 schtasks /Change /TN "\Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan" /Disable
 
 
-echo shutdown /r /f /t 10 > C:\Ziitech\Restart.bat
-SCHTASKS /CREATE /SC DAILY /TN "ScheduledReboot" /TR "'C:\Ziitech\Restart.bat'" /ST 04:00 /RL HIGHEST
-SCHTASKS /CREATE /SC DAILY /TN "TimeResync" /TR "w32tm /resync" /ST 23:00 /RL HIGHEST
+echo shutdown /r /f /t 10 > C:\MyPOSZero\Restart.bat
+SCHTASKS /CREATE /SC DAILY /TN "ScheduledReboot" /TR "'C:\MyPOSZero\Restart.bat'" /ST 04:00 /RL HIGHEST /f
+SCHTASKS /CREATE /SC DAILY /TN "TimeResync" /TR "w32tm /resync" /ST 23:00 /RL HIGHEST /f
 
-
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessLocation /t REG_DWORD /d 1 /f
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\tzautoupdate" /v Start /t REG_DWORD /d 3 /f
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" /v Value /t REG_SZ /d Allow /f
 
 exit''')
     systemConfigFile.close()
     file_exists = os.path.exists(SystemConfigurationFile)
     if (file_exists==True):
-         print("SQLServer Configuration Batch File ready")
+         print("System Configuration Batch File ready")
     else:
-        print("SQLServer Configuration Batch File Create Error")
+        print("System Configuration Batch File Create Error")
            
-    
-def createSQLServerAccountFile(directory):
-    DBAccountSQLFile=directory+"\\ziiposAccount.sql"
-    #print(DBAccountSQLFile)
-    DBAccountSQLFileSQL = open(DBAccountSQLFile,'w')
-       
-    DBAccountSQLFileSQL.write(r'''USE [master] 
-GO 
-CREATE LOGIN [ZiiPos] WITH PASSWORD=N'ZiiPos884568', DEFAULT_DATABASE=[master], CHECK_EXPIRATION=OFF, CHECK_POLICY=OFF 
-GO 
-EXEC master..sp_addsrvrolemember @loginame = N'ZiiPos', @rolename = N'sysadmin' 
-GO 
-''')
-    DBAccountSQLFileSQL.close()
-    file_exists = os.path.exists(DBAccountSQLFile)
-    if (file_exists==True):
-         print("SQLServer Account SQL File ready")
-    else:
-        print("SQLServer Account SQL File Create Error")
-   
-
-
-
 
 
 
 
 
 def createProfilSettingFile():
-    directory1="C:\\Program Files (x86)\\ZiiForce\\Zii.LocalServer"
+    directory1="C:\\Program Files (x86)\\MyPosZero\\MyPosZero.LocalServer"
     profilesFile=directory1+"\\profilesettings.json"
     #print(DBAccountSQLFile)
+    if not os.path.exists(directory1):
+        os.makedirs(directory1)
+        
     profilesFileSet = open(profilesFile,'w')
     profilesFileSet.write(r'''
 {
@@ -469,7 +418,7 @@ def createProfilSettingFile():
     "BranchId": "FILL-YOUR-BRANCH-NAME",
     "DBType": "0",
     "DataSource": "localhost\\sqlexpress2008r2",
-    "InitialCatalog": "ZiiPOS_DB",
+    "InitialCatalog": "MYPOSZero_DB",
     "AuthEntication": "1",
     "UserName": "sa",
     "EncryptUserPwd": "idhDSRYZ54Y=",
@@ -480,6 +429,7 @@ def createProfilSettingFile():
 ''')
     profilesFileSet.close()
     file_exists = os.path.exists(profilesFile)
+    
     if (file_exists==True):
          print("SQLServer Profile File ready")
     else:
@@ -515,17 +465,7 @@ def downloadZiiPOSSQL(directory):
         wget.download(downloadURL, filePath)
 
 
-def downloadSyncTools(directory):
-    downloadURL=syncToolDownloadURL
-    filePath=directory+'\\ZiiSyncSetup-x86.exe'
-    
-    file_exists = os.path.exists(filePath)
-    if (file_exists==True):
-       print("\nSync Tools file Ready")
-    else:
-        print("Start to download Sync Tools ")
-        wget.download(downloadURL, filePath)
-        
+
 def downloadSQLServerX64(directory):
     #SQLEXPRWT_2008R2_x64_ENU.exe
     downloadURL=DBx64downloadURL
@@ -535,7 +475,7 @@ def downloadSQLServerX64(directory):
     
     file_exists = os.path.exists(filePath1)
     sqlinstalltion =  os.path.exists(SQLserverInstalledFilePath)
-    USBFileExist = os.path.exists(LocalFileSqlFile)
+    localSqlinstallFileExist = os.path.exists(LocalFileSqlFile)
 
 
     if (file_exists==True):
@@ -543,8 +483,8 @@ def downloadSQLServerX64(directory):
     elif(sqlinstalltion==True):    
         print("\nSQL Server X64 file Ready")
 
-    elif(USBFileExist==True):
-        shutil.copyfile(LocalFileSqlFile, filePath1)
+    elif(localSqlinstallFileExist==True):
+        print("\nSQL Server X64 file Ready")
     else:
         print("\nStart to download SQL Server X64 ")
         wget.download(downloadURL, filePath1)
@@ -555,7 +495,7 @@ def downloadSQLServerX64(directory):
 def download7Zip(directory):
     #filePath = path+"\ZiiPOSRetail"+version+".exe"
     downloadURL=_7Zipx64DownloadURL
-    filePath=directory+'\\z7z2407.exe'
+    filePath=directory+'\\z7z2201.exe'
     file_exists = os.path.exists(filePath)
     if (file_exists==True):
        print("\ndownload 7zip file Ready")
@@ -566,7 +506,8 @@ def download7Zip(directory):
 def downloadAnydesk(directory):
     #filePath = path+"\ZiiPOSRetail"+version+".exe"
     downloadURL=anydeskDownloadURL
-    filePath=directory+'\\anydesk.msi'
+    #filePath=directory+'\\anydesk.msi'
+    filePath=directory+'\\anydesk.exe'
     file_exists = os.path.exists(filePath)
     if (file_exists==True):
        print("\ndownload anydesk file Ready")
@@ -575,18 +516,47 @@ def downloadAnydesk(directory):
         wget.download(downloadURL, filePath)
 
 
+   
+
+def downloaddotnetcore31(directory):
+    #filePath = path+"\ZiiPOSRetail"+version+".exe"
+    #dotnetCore301x64DownloadURL="https://download.visualstudio.microsoft.com/download/pr/e0f36c72-8edf-4c6b-a835-e74cfcc6fc23/b5e69be920e77652ce6f31a0f48ab71d/dotnet-sdk-3.1.426-win-x86.exe"
+    #dotnetCore301x86DownloadURL="https://download.visualstudio.microsoft.com/download/pr/b70ad520-0e60-43f5-aee2-d3965094a40d/667c122b3736dcbfa1beff08092dbfc3/dotnet-sdk-3.1.426-win-x64.exe"
+
+
+
+    downloadURLx86=dotnetCore301x86DownloadURL
+    filePathx86=directory+'\\dotnet-sdk-3.1.426-win-x86.exe'
+    file_exists = os.path.exists(filePathx86)
+    if (file_exists==True):
+       print("\ndownload dotnetcore31_x86 file Ready")
+    else:
+        print("\nStart to download dotnetcore31_x86 ")
+        wget.download(downloadURLx86, filePathx86)
+
+    downloadURLx64=dotnetCore301x64DownloadURL
+    filePathx64=directory+'\\dotnet-sdk-3.1.426-win-x64.exe'
+    file_exists = os.path.exists(downloadURLx64)
+    if (file_exists==True):
+       print("\ndownload dotnetcore31_64 file Ready")
+    else:
+        print("\nStart to download dotnetcore31_64 ")
+        wget.download(downloadURLx64, filePathx64)
+
 
 #-----------------------------------------Install process------------------------------------------------------------------------------
 
 def AnydeskInstallationProcess(directory):
-    filePath=directory+'\\anydesk.msi'
+    #filePath=directory+'\\anydesk.msi'
+    filePath=directory+'\\anydesk.exe'
     
     file_exists = os.path.exists(filePath)
     if (file_exists==True):
         print("anydesk Ready")
-        runCMD1='cmd /c msiexec /i '+filePath+' /QN'
+        #runCMD1='cmd /c msiexec /i '+filePath+' /QN'
+        runCMD1='cmd /c '+filePath+' --install  "C:\Program Files (x86)\AnyDesk" --start-with-win --create-desktop-icon'
         os.system(runCMD1)
-        runCMD2='cmd /c echo Ziitech123! | "C:\Program Files (x86)\AnyDeskMSI\AnyDeskMSI.exe" --set-password'
+        runCMD2='cmd /c echo Mypos123! | "C:\Program Files (x86)\AnyDesk\AnyDesk.exe" --set-password'
         os.system(runCMD2)
     else:
         print("Error: anydesk not exist")
@@ -594,7 +564,7 @@ def AnydeskInstallationProcess(directory):
 
 def ZiiPOSInstallationProcess(FileToInstall):
     print("start")
-    #runCMD1='cmd /c C:\Ziitech\killProcess.bat'
+    #runCMD1='cmd /c C:\MyPOSZero\killProcess.bat'
     runCMD4="cmd /c" + FileToInstall + " /S"
     #os.system(runCMD1)
     os.system(runCMD4)
@@ -660,20 +630,16 @@ def SQLServerInstallationProcess(directory):
         if not os.path.exists(SQLserverInstalledFilePath):
             print("Start to Install SQLServer")
             runCMD1='cmd /c '+filePath1
-            os.system(runCMD1)
-            
+            os.system(runCMD1)          
         else:
-            print("SQLServer Ready")
-            
-        
-       
+            print("SQLServer Ready")         
     else:
         print("Error: SQLServerInstall.bat not exist")
         
     file_exists2 = os.path.exists(filePath2)
     if (file_exists2==True):
         runCMD2='cmd /c '+filePath2
-        #runCMD2='cmd /c C:\Ziitech\SQLServerConfiguration.bat'
+       
         os.system(runCMD2)
     else:
         print("Error: SQLServerConfiguration.bat not exist")
@@ -685,7 +651,7 @@ def windowsSystemConfiguration(directory):
     if (file_exists1==True):
         print("Start to run windows configuration ")
         runCMD1='cmd /c '+filePath1
-        #runCMD1='cmd /c C:\Ziitech\SystemConfiguration.bat'
+   
         os.system(runCMD1)
     else:
         print("Error: SystemConfiguration.bat not exist")
@@ -697,46 +663,75 @@ def InstallDotNet35(directory):
     if (file_exists1==True):
         print("Start to Install .net 3.5")
         runCMD1='cmd /c '+filePath1
-        #runCMD1='cmd /c C:\Ziitech\dotNet35Install.bat'
+   
         os.system(runCMD1)
     else:
         print("Error: dotNet35Install.bat not exist")
 
 def InstallDotNetCore31(directory):
   
-    filePath1=directory+"\\dotNet35Install.bat"
+    filePath1=directory+"\\DotNet31CoreInstallFile.bat"
     file_exists1 = os.path.exists(filePath1)
     if (file_exists1==True):
-        print("Start to Install .net 3.5")
+        print("Start to Install .net 3.1 Core")
         runCMD1='cmd /c '+filePath1
-        #runCMD1='cmd /c C:\Ziitech\dotNet35Install.bat'
+    
         os.system(runCMD1)
     else:
         print("Error: dotNet35Install.bat not exist")
 
 
 def syncDateAndTime():
+    runCMD1='cmd /c net start w32time && w32tm /resync'
   
-    runCMD1='cmd /c w32tm /resync'
     os.system(runCMD1)
 
 
 
 
-def installZiiPOSRetailClassic(directory):
+def installZiiPOS(directory):
     downloadUrl=ZiiPOSdownloadUrl
-    filePath = directory+"\\ZiiLocalServerSetup.exe"
+    filePath = directory+"\\MyPosZeroLocalServerSetup.exe"
     file_exists1 = os.path.exists(filePath)
     if (file_exists1==True):
-        print("\nZiiLocalServerSetup is ready")
+        print("\nMyPosZeroLocalServerSetup is ready")
         runCMD1='cmd /c '+filePath+' /S'
         os.system(runCMD1)
+
         
     else:
         print("\nStart to download ZiiLocalServerSetup")
         downloadZiiPOS(downloadUrl,filePath)
         runCMD1='cmd /c '+filePath+' /S'
         os.system(runCMD1)
+
+
+def createChocoInstallBatch(directory):
+    softwareInstallFile=directory+"\\choco.bat"
+    #print(DBConfigurationFile)
+    chocoFileBatch = open(softwareInstallFile,'w')
+    
+    # Write BATCH fill by using Raw mode "r", Note: Do not change style
+    chocoFileBatch.write(r'''
+cd /d %~dp0
+rmdir /S /Q C:\ProgramData\chocolatey
+@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+choco install -y 7zip.install 
+choco install -y googlechrome 
+choco install -y firefox 
+chocho install -y vscode
+exit''')
+    chocoFileBatch.close()
+    file_exists = os.path.exists(softwareInstallFile)
+    if (file_exists==True):
+         print("choco install File ready")
+    else:
+        print("choco install File Create Error")
+
+
+
+
 
 
 
@@ -754,31 +749,32 @@ def startZiiPOSFullDeployment():
     createDBSQLFile(directory)
     createDBBuildFile(directory)
     createDotNet35InstallFile(directory)
+    createDotNet31CoreInstallFile(directory)
     createSQLServerInstallationBatchFile(directory)
     createSQLServerConfigurationBatchFile(directory)
-    createSQLServerAccountFile(directory)
+
     createSystemConfigurationBatchFile(directory)
     createChocoInstallBatch(directory)
-
     
     
     # ------------Download files-----------------------
     downloadZiiPOSSQL(directory)
-    downloadSyncTools(directory)
+    downloaddotnetcore31(directory)
     downloadSQLServerX64(directory)
     downloadAnydesk(directory)
 
         
     # -----------Start Installation-------------------------
-    AnydeskInstallationProcess(directory)
-    InstallDotNet35(directory)    
-    SQLServerInstallationProcess(directory)
     windowsSystemConfiguration(directory)
-    installZiiPOS(directory)
-    SyncToolsInstallationProcess(directory)
-    runSQLDBBuild(directory)
-    createProfilSettingFile()
-    runChocoinstall(directory)
+    AnydeskInstallationProcess(directory)
+    #InstallDotNet35(directory)    
+    #InstallDotNetCore31(directory)
+    #SQLServerInstallationProcess(directory)
+    #runSQLDBBuild(directory)
+    #installZiiPOS(directory)
+    #createProfilSettingFile()
+    #runChocoinstall(directory)
+    #runDisablewin()
 
 
 
@@ -799,46 +795,17 @@ def ZiiPOSDeployment():
     
     # ------------Download files-----------------------
     downloadZiiPOSSQL(directory)
-    downloadSyncTools(directory)
+
+
 
         
     # -----------Start Installation-------------------------
-    
-    installZiiPOS(directory)
-    SyncToolsInstallationProcess(directory)
     runSQLDBBuild(directory)
-    createProfilSettingFile()   
+    installZiiPOS(directory)
+    createProfilSettingFile()
+    runDisablewin()   
         
-        
-        
-        
-        
-#-------------------------USB INSTALLATION--------------------------------------
-
-def checkUSBFiles():
-    returnFileValue=0
-    #dir_path= os.path.dirname(os.path.realpath(__file__))
-    dir_path=LocalFileDirectory
-    filename1=dir_path+"\\03_Softwares\\AutoInstall\\00_InstallApps.bat"
-    filename2=dir_path+"\\01_Softwares\\AutoInstall\\00_InstallApps.bat"
-    #cwd = os.getcwd()
-    print(dir_path)
-    file_exists1 = os.path.exists(filename1)
-    file_exists2 = os.path.exists(filename2)
-    if (file_exists1==True):
-        print(file_exists1)
-        returnFileValue=filename1
-        
-    elif(file_exists2==True):
-        print(file_exists2)
-        returnFileValue=filename2
-    else:
-        returnFileValue=0
-        
-    return returnFileValue
-    
-
-    
+ 
     
 
 
@@ -850,7 +817,7 @@ class App:
     def __init__(self, root):
         
         #setting title
-        root.title("ZiiPOS Retail Classic Deployment Tool V1.5")
+        root.title("MyPOS F&B Tool V1.7")
         #setting window size
         width=350
         height=300
@@ -867,7 +834,7 @@ class App:
         GButton_ZiiPOSDeployment["font"] = ft
         GButton_ZiiPOSDeployment["fg"] = "#000000"
         GButton_ZiiPOSDeployment["justify"] = "center"
-        GButton_ZiiPOSDeployment["text"] = "Deploy ZiiPOS Retail Classic & SyncTool Only"
+        GButton_ZiiPOSDeployment["text"] = "Deploy MyPOS FB Server Only"
         GButton_ZiiPOSDeployment.place(x=40,y=90,width=250,height=52)
         GButton_ZiiPOSDeployment["command"] = self.GButton_ZiiPOSDeployment_command
         
@@ -878,20 +845,10 @@ class App:
         GButton_ZiiPOSRemoteFULL["font"] = ft
         GButton_ZiiPOSRemoteFULL["fg"] = "#000000"
         GButton_ZiiPOSRemoteFULL["justify"] = "center"
-        GButton_ZiiPOSRemoteFULL["text"] = "Install ZiiPOS Retail Classic FULL(Remote)"
+        GButton_ZiiPOSRemoteFULL["text"] = "Install MyPOS F&B FULL"
         GButton_ZiiPOSRemoteFULL.place(x=40,y=20,width=250,height=52)
         GButton_ZiiPOSRemoteFULL["command"] = self.GButton_ZiiPOSRemoteFULL_command
         
-        
-        GButton_ZiiPOSUSB=tk.Button(root)
-        GButton_ZiiPOSUSB["bg"] = "#f0f0f0"
-        ft = tkFont.Font(family='Times',size=10)
-        GButton_ZiiPOSUSB["font"] = ft
-        GButton_ZiiPOSUSB["fg"] = "#000000"
-        GButton_ZiiPOSUSB["justify"] = "center"
-        GButton_ZiiPOSUSB["text"] = "Install ZiiPOS FB FULL From C:\\Ziitech_D"
-        GButton_ZiiPOSUSB.place(x=40,y=160,width=250,height=52)
-        GButton_ZiiPOSUSB["command"] = self.GButton_ZiiPOSInstallWithUSB
 
 
         GButton_ZiiPOSDW=tk.Button(root)
@@ -915,7 +872,7 @@ class App:
             if SystemVersion==64:    
                 if getRestartStatus==0:
                     startZiiPOSFullDeployment()
-                    messagebox.showinfo(title="Installation Complete", message="ZiiPOS FULL System Deployment Complete")
+                    messagebox.showinfo(title="Installation Complete", message="MyPOS F&B FULL System Deployment Complete")
                 else:
                     print("windows system need REBOOT" )
                     messagebox.showinfo(title="PLease REBOOT", message="Windows has a pending restart process, you must REBOOT WINDOES before we start") 
@@ -969,43 +926,7 @@ class App:
         
 
 
-       
-
-    
-    def GButton_ZiiPOSInstallWithUSB(self):
-        status=checkIsAdmin()
-        if "True"==str(status):
-            getRestartStatus=restart_statues()
-            SystemVersion=checkSystem()
-            usbInstallFilePath=checkUSBFiles()
-
-            if SystemVersion==64:    
-                if getRestartStatus==0:
-                    usbInstallFilePath=checkUSBFiles()
-                    if usbInstallFilePath ==0:
-                        messagebox.showinfo(title="File not exist", message="ZiiPOS Files are not exist, Please COPY Ziitech_D folder to C:\\")
-                    else:
-                        runCMD1='cmd /c '+usbInstallFilePath+' /S'
-                        os.system(runCMD1)
-                        print("Stage 1 Completed")
-                        ZiiPOSDeployment()
-                    
-                        messagebox.showinfo(title="Installation Complete", message="ZiiPOS FB with USB Installation Complete")
-                    
-                    
-                    
-                else:
-                    print("windows system need REBOOT" )
-                    messagebox.showinfo(title="PLease REBOOT", message="Windows has a pending restart process, you must REBOOT WINDOES before we start") 
-            else:
-                print("windows system: " + SystemVersion)
-                messagebox.showinfo(title="Windows System not compatible", message="Windows system not compatible! Win X64 ONLY") 
-
-        else:
-            print("You Must run as administrator" )
-            messagebox.showinfo(title="run as admin", message="You Must run as administrator") 
-       
-        
+     
     
 
 

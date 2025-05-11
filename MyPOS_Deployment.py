@@ -1,7 +1,4 @@
 #MYPOS deployment tool
-#Build 20250415
-#Version V1.7.1
-
 #V1.7.2
 #change anydesk download url
 
@@ -466,13 +463,12 @@ def downloadZiiPOSSQL(directory):
        print("\nZiiPOS DB SQL file Ready")
     else:
         print("Start to download ZiiPOS DB SQL Tools ")
+
         try:
             wget.download(downloadURL, filePath)
         except:
             print("download ZiiPOS Error")
         
-        
-
 
 
 def downloadSQLServerX64(directory):
@@ -496,12 +492,13 @@ def downloadSQLServerX64(directory):
         print("\nSQL Server X64 file Ready")
     else:
         print("\nStart to download SQL Server X64 ")
+
         try:
             wget.download(downloadURL, filePath1)
         except:
             print("download SQL Server Error")
         
- 
+=
         
        
 
@@ -514,11 +511,13 @@ def download7Zip(directory):
        print("\ndownload 7zip file Ready")
     else:
         print("\nStart to download 7Zip ")
+
         
         try:
             wget.download(downloadURL, filePath)
         except:
             print("download 7Zip Error")
+
         
 def downloadAnydesk(directory):
     #filePath = path+"\ZiiPOSRetail"+version+".exe"
@@ -530,12 +529,12 @@ def downloadAnydesk(directory):
        print("\ndownload anydesk file Ready")
     else:
         print("\nStart to download anydesk ")
+
         try:
             wget.download(downloadURL, filePath)
         except:
             print("download anydesk Error")
        
-
 
    
 
@@ -553,6 +552,7 @@ def downloaddotnetcore31(directory):
        print("\ndownload dotnetcore31_x86 file Ready")
     else:
         print("\nStart to download dotnetcore31_x86 ")
+
         try:
             wget.download(downloadURLx86, filePathx86)
         except:
@@ -566,6 +566,7 @@ def downloaddotnetcore31(directory):
        print("\ndownload dotnetcore31_64 file Ready")
     else:
         print("\nStart to download dotnetcore31_64 ")
+
        
         try:
              wget.download(downloadURLx64, filePathx64)
@@ -781,6 +782,7 @@ def startZiiPOSFullDeployment():
     createDotNet31CoreInstallFile(directory)
     createSQLServerInstallationBatchFile(directory)
     createSQLServerConfigurationBatchFile(directory)
+
     createSystemConfigurationBatchFile(directory)
     createChocoInstallBatch(directory)
     
@@ -845,7 +847,9 @@ class App:
     def __init__(self, root):
         
         #setting title
+
         root.title("MyPOS F&B Tool V1.7.2")
+
         #setting window size
         width=350
         height=300
